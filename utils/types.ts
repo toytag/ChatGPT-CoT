@@ -1,2 +1,7 @@
-// role is a string that can only be "ChatGPT" or "User"
-export type Role = "ChatGPT" | "User";
+// role is a string that can only be "GPT" or "USR"
+export type Role = "user" | "assistant" | "system";
+
+export type Message = {
+  role: Role;
+  content: string;
+};
