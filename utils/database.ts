@@ -3,7 +3,7 @@ import type { Message, Role } from "./types";
 
 const db = new Database("database.db");
 db.pragma("journal_mode = WAL");
-// db.pragma("synchronous = NORMAL");
+db.pragma("synchronous = NORMAL");
 // handle db close on process exit
 process.on("exit", () => {
   db.pragma("analysis_limit = 1024");
