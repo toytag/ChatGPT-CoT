@@ -16,7 +16,7 @@ export function middleware(req: NextRequest) {
       });
       return res;
     }
-    return new NextResponse("Invalid session", { status: 400 });
+    return new NextResponse(`Invalid session: ${sessionToken}`, { status: 400 });
   }
   return NextResponse.next();
 }
