@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   // get cookie session id
-  const sessionId = req.cookies.get("sessionId")?.value;
+  const sessionToken = req.cookies.get("sessionToken")?.value;
   // if no session id, return error
-  if (!sessionId) {
+  if (!sessionToken) {
     return new NextResponse("Invalid session", { status: 400 });
   }
   // get message from request body
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
         ],
         stream: true,
       },
-      { responseType: "stream" }
+      { responseType: "stream" },
     );
 
     return new NextResponse(chatCompletion.data as unknown as ReadableStream);

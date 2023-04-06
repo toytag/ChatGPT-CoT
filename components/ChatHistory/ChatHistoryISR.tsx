@@ -3,10 +3,8 @@ import { cookies } from "next/headers";
 import ChatHistoryCSR from "./ChatHistoryCSR";
 
 export default function ChatHistoryISR() {
-  const sessionId = cookies().get("sessionId")?.value;
-  const data = sessionId ? getHistory(sessionId) : [];
+  const sessionToken = cookies().get("sessionToken")?.value;
+  const data = sessionToken ? getHistory(sessionToken) : [];
 
-  return (
-    <ChatHistoryCSR fallbackData={data} />
-  );
+  return <ChatHistoryCSR fallbackData={data} />;
 }

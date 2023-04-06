@@ -19,7 +19,7 @@ async function sendMessage(url: RequestInfo, { arg }: { arg: Message }) {
 export default function TextInput() {
   const { trigger, isMutating } = useSWRMutation(
     "/api/chat/history",
-    sendMessage
+    sendMessage,
   );
   const [text, setText] = React.useState<string>("");
   const [streaming, setStreaming] = React.useState<boolean>(false);
@@ -38,7 +38,7 @@ export default function TextInput() {
           optimisticData: (data: Message[] | undefined) =>
             data ? [...data, { role: "user" as Role, content: text }] : [],
           rollbackOnError: true,
-        }
+        },
       );
     }
     setText("");
@@ -77,7 +77,7 @@ export default function TextInput() {
             border-y-[16px] bg-transparent px-[16px] py-[2px] text-lg
             placeholder:italic focus:outline-none"
         />
-        <label className="swap-rotate swap btn-ghost btn-circle btn m-2 self-end">
+        <label className="swap btn-ghost swap-rotate btn-circle btn m-2 self-end">
           <input
             type="checkbox"
             checked={streaming}

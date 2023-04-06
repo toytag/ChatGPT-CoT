@@ -14,7 +14,8 @@ export default function ChatHistoryCSR({
   fallbackData: Message[];
 }) {
   const { data, error } = useSWR<Message[]>("/api/chat/history", fetcher, {
-    suspense: true, fallbackData: fallbackData,
+    suspense: true,
+    fallbackData: fallbackData,
   });
   const bottomRef = React.useRef<HTMLDivElement>(null);
 

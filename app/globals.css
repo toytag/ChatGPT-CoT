@@ -13,7 +13,7 @@
 }
 
 @supports (-webkit-touch-callout: none) {
-  .safe-h-screen {
+  .safe-h-screen {
     /* for ios safari 15, safe-area-inset-bottom is 0, so a special fix apply here */
     height: -webkit-fill-available;
   }

@@ -3,12 +3,12 @@ import { v4 as uuidv4, validate, version } from "uuid";
 
 // This middleware will set a cookie with a session ID if one is not already set.
 export function middleware(req: NextRequest) {
-  const sessionId = req.cookies.get("sessionId")?.value;
-  if (!sessionId || !validate(sessionId) || version(sessionId) !== 4) {
+  const sessionToken = req.cookies.get("sessionToken")?.value;
+  if (!sessionToken || !validate(sessionToken) || version(sessionToken) !== 4) {
     if (req.nextUrl.pathname === "/") {
       const res = NextResponse.next();
       res.cookies.set({
-        name: "sessionId",
+        name: "sessionToken",
         value: uuidv4(),
         maxAge: 3 * 24 * 60 * 60,
         httpOnly: true,

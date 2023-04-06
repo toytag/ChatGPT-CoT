@@ -5,35 +5,35 @@ const db = new Database("database.db");
 db.pragma("journal_mode = WAL");
 db.prepare(`
   CREATE TABLE IF NOT EXISTS history (
-    sessionId TEXT,
+    sessionToken TEXT,
     timestamp DATETIME,
     role TEXT,
     content TEXT,
-    PRIMARY KEY (sessionId, timestamp)
+    PRIMARY KEY (sessionToken, timestamp)
   )
 `).run();
 
-function getHistory(sessionId: string): Message[] {
+function getHistory(sessionToken: string): Message[] {
   return db.prepare(`
     SELECT role, content
     FROM history
-    WHERE sessionId = ?
+    WHERE sessionToken = ?
     ORDER BY timestamp
-  `).all(sessionId);
+  `).all(sessionToken);
 }
 
-function addHistory(sessionId: string, role: string, content: string) {
+function addHistory(sessionToken: string, role: string, content: string) {
   db.prepare(`
-    INSERT INTO history (sessionId, timestamp, role, content)
+    INSERT INTO history (sessionToken, timestamp, role, content)
     VALUES (?, datetime('now'), ?, ?)
-  `).run(sessionId, role, content);
+  `).run(sessionToken, role, content);
 }
 
-function clearHistory(sessionId: string) {
+function clearHistory(sessionToken: string) {
   db.prepare(`
     DELETE FROM history
-    WHERE sessionId = ?
-  `).run(sessionId);
+    WHERE sessionToken = ?
+  `).run(sessionToken);
 }
 
 
