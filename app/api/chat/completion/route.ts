@@ -5,32 +5,27 @@ import { getHistory } from "@/utils/database";
 
 export async function POST(req: NextRequest) {
   // invalid session id will be handled by the middleware
-  const sessionToken = req.cookies.get("sessionToken")!.value;
-  // get query ?stream=true
-  // const stream = req.query.get("stream") === "true";
-  const stream = req.nextUrl.searchParams.get("stream") === "true";
-  console.log("stream", stream);
+  const sessionID = req.cookies.get("sessionID")!.value;
 
   try {
     const chatCompletion = await openai.createChatCompletion(
       {
-        model: "gpt-4",
+        model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: "Helpful assistant. Prefer concise answers.",
+            content: `You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible. Knowledge cutoff: ${"Sep 2021"} Current date: ${new Date().toLocaleDateString(
+              "en-US",
+              { month: "short", year: "numeric" }
+            )}`,
           },
-          ...getHistory(sessionToken),
+          ...getHistory(sessionID),
         ],
-        stream: false,
+        stream: true,
       },
-      { responseType: stream ? "stream" : "json" }
+      { responseType: "stream" }
     );
-
-    if (stream)
-      return new NextResponse(chatCompletion.data as unknown as ReadableStream);
-    else
-      return NextResponse.json(chatCompletion.data);
+    return new NextResponse(chatCompletion.data as unknown as ReadableStream);
   } catch (error: any) {
     if (error.response) {
       console.error(error.response.status, error.response.data);

@@ -3,10 +3,10 @@ import { getHistory, addHistory, clearHistory } from "@/utils/database";
 
 export async function GET(req: NextRequest) {
   // invalid session id will be handled by the middleware
-  const sessionToken = req.cookies.get("sessionToken")!.value;
+  const sessionID = req.cookies.get("sessionID")!.value;
   try {
     // get history from database
-    const history = getHistory(sessionToken);
+    const history = getHistory(sessionID);
     // return history as JSON
     return NextResponse.json(history);
   } catch (error: any) {
@@ -17,12 +17,12 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   // invalid session id will be handled by the middleware
-  const sessionToken = req.cookies.get("sessionToken")!.value;
+  const sessionID = req.cookies.get("sessionID")!.value;
   try {
     // get message from request body
     const { role, content } = await req.json();
     // add message to database
-    addHistory(sessionToken, role, content);
+    addHistory(sessionID, role, content);
     // return success
     return new NextResponse("OK", { status: 201 });
   } catch (error: any) {
@@ -33,10 +33,10 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   // invalid session id will be handled by the middleware
-  const sessionToken = req.cookies.get("sessionToken")!.value;
+  const sessionID = req.cookies.get("sessionID")!.value;
   try {
     // clear history from database
-    clearHistory(sessionToken);
+    clearHistory(sessionID);
     // return success
     return new NextResponse("OK");
   } catch (error: any) {

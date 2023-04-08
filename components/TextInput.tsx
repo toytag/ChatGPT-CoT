@@ -2,12 +2,11 @@
 
 import React from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import { isMobile, isTablet } from "react-device-detect";
-import { useRouter } from "next/navigation";
-
-import { useSWRConfig } from "swr";
 import useSWRMutation from "swr/mutation";
 import type { Message, Role } from "@/utils/types";
+import { useRouter } from "next/navigation";
+import { useStreamStore } from "@/utils/store";
+import { streamAsyncIterator } from "@/utils/stream";
 
 async function sendMessage(url: RequestInfo, { arg }: { arg: Message }) {
   return fetch(url, {
@@ -17,31 +16,69 @@ async function sendMessage(url: RequestInfo, { arg }: { arg: Message }) {
 }
 
 export default function TextInput() {
+  const router = useRouter();
   const { trigger, isMutating } = useSWRMutation(
     "/api/chat/history",
-    sendMessage,
+    sendMessage
   );
   const [text, setText] = React.useState<string>("");
+  const [content, setContent, appendContent] = useStreamStore((state) => [
+    state.content,
+    state.setContent,
+    state.appendContent,
+  ]);
   const [streaming, setStreaming] = React.useState<boolean>(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  // React.useEffect(() => {
-  //   textareaRef.current!.scrollIntoView({ behavior: "instant" });
-  // }, [text]);
-
-  const handleSend = () => {
+  const handleSend = async () => {
     if (isMutating) return;
-    if (text.trim().length > 0) {
-      trigger(
-        { role: "user", content: text },
-        {
-          optimisticData: (data: Message[] | undefined) =>
-            data ? [...data, { role: "user" as Role, content: text }] : [],
-          rollbackOnError: true,
-        },
-      );
-    }
+    if (text.trim().length === 0) return;
+
+    // send message to server
+    trigger(
+      { role: "user", content: text },
+      {
+        optimisticData: (data: Message[] | undefined) =>
+          data ? [...data, { role: "user" as Role, content: text }] : [],
+        rollbackOnError: true,
+      }
+    );
     setText("");
+
+    // streaming
+    const stream = await fetch("/api/chat/completion", { method: "POST" });
+    if (stream.body === null) return;
+    let tmpContent = "";
+    for await (const chunk of streamAsyncIterator(stream.body)) {
+      (new TextDecoder()).decode(chunk).split("data: ").forEach((data) => {
+        if (data.trim() === "[DONE]") return;
+        // parse data json
+        try {
+          const { delta, finish_reason } = JSON.parse(data).choices[0];
+          if (delta.content) {
+            tmpContent += delta.content;
+            appendContent(delta.content);
+          }
+        } catch (e: any) {
+          console.log("data: ", data);
+          console.log(e);
+        }
+      });
+    }
+
+    // upload stream response to server
+    trigger(
+      { role: "assistant", content: tmpContent },
+      {
+        optimisticData: (data: Message[] | undefined) =>
+          data
+            ? [...data, { role: "assistant" as Role, content: tmpContent }]
+            : [],
+        rollbackOnError: true,
+      }
+    );
+
+    setContent("");
   };
 
   const handleStop = () => {
@@ -56,11 +93,11 @@ export default function TextInput() {
         bg-base-100/75 shadow-xl backdrop-blur"
       >
         <TextareaAutosize
-          placeholder="Ask ChatGPT anything..."
+          // placeholder="Ask ChatGPT anything..."
           autoFocus
           ref={textareaRef}
           onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-            if (isMobile && !isTablet) return;
+            // if (isMobile && !isTablet) return;
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               if (streaming) return;
@@ -77,7 +114,7 @@ export default function TextInput() {
             border-y-[16px] bg-transparent px-[16px] py-[2px] text-lg
             placeholder:italic focus:outline-none"
         />
-        <label className="swap btn-ghost swap-rotate btn-circle btn m-2 self-end">
+        <label className="swap-rotate swap btn-ghost no-animation btn-circle btn m-2 self-end">
           <input
             type="checkbox"
             checked={streaming}
@@ -97,28 +134,33 @@ export default function TextInput() {
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            strokeWidth={1.5}
+            strokeWidth={1}
             stroke="currentColor"
-            className="swap-off h-6 w-6"
+            className="swap-off h-9 w-9"
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+              d="M15 11.25l-3-3m0 0l-3 3m3-3v7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            strokeWidth={1.5}
+            strokeWidth={1}
             stroke="currentColor"
-            className="swap-on h-6 w-6"
+            className="swap-on h-9 w-9"
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z"
+              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 9.563C9 9.252 9.252 9 9.563 9h4.874c.311 0 .563.252.563.563v4.874c0 .311-.252.563-.563.563H9.564A.562.562 0 019 14.437V9.564z"
             />
           </svg>
         </label>

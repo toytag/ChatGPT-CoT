@@ -1,7 +1,10 @@
 import type { Message } from "@/utils/types";
 import ReactMarkdown from "react-markdown";
-import rehypeHighlight from "rehype-highlight";
-import remarkGfm from "remark-gfm";
+import RemarkMath from "remark-math";
+import RemarkBreaks from "remark-breaks";
+import RehypeKatex from "rehype-katex";
+import RemarkGfm from "remark-gfm";
+import RehypeHighlight from "rehype-highlight";
 
 export default function MessageBox({ role, content }: Message) {
   return (
@@ -21,11 +24,21 @@ export default function MessageBox({ role, content }: Message) {
         </p>
         <ReactMarkdown
           className="text-lg"
-          remarkPlugins={[remarkGfm]}
-          // rehypePlugins={[rehypeHighlight]}
+          remarkPlugins={[RemarkMath, RemarkGfm, RemarkBreaks]}
+          rehypePlugins={[
+            RehypeKatex,
+            [
+              RehypeHighlight,
+              {
+                detect: false,
+                ignoreMissing: true,
+              },
+            ],
+          ]}
         >
           {content}
         </ReactMarkdown>
+        {/* <p className="text-lg">{String.raw`${content}`}</p> */}
       </div>
       <div className="divider my-1" />
     </>

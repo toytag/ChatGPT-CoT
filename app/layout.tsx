@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-safe-h-screen flex flex-col bg-base-200">
+      <body className="min-safe-h-screen scrollbar-hide flex flex-col bg-base-200">
         {/* <div className="fixed top-0 h-10 w-full bg-gradient-to-b from-base-200 via-base-200 to-transparent" /> */}
         {/* <div className="fixed bottom-0 h-10 w-full bg-gradient-to-b from-transparent via-base-200 to-base-200" /> */}
         <MenuBar />

@@ -13,15 +13,14 @@ export default function ChatHistoryCSR({
 }: {
   fallbackData: Message[];
 }) {
-  const { data, error } = useSWR<Message[]>("/api/chat/history", fetcher, {
-    suspense: true,
+  const { data, error, isLoading } = useSWR<Message[]>("/api/chat/history", fetcher, {
     fallbackData: fallbackData,
   });
   const bottomRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     // auto scroll to bottom
-    bottomRef.current!.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current!.scrollIntoView();
   }, [data]);
 
   // if (error) return <div>Error: {error.message}</div>;
